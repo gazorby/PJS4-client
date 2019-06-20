@@ -4,27 +4,30 @@ using Newtonsoft.Json;
 
 namespace Client.Models
 {
-    public class InitGame
+    public class GamePhaseInit
     {
         [JsonProperty("heroes")]
         public List<Hero> heroes;
         
         [JsonProperty("board")]
         public List<string> board;
+
+        [JsonProperty("id")]
+        public string id;
     }
 
     
 
-    public class EquipInit
+    public class EquipPhaseInit
     {
         [JsonProperty("card_type")] 
         public string cardType;
 
-        [JsonProperty("cards")] 
-        public List<Card> cards;
+        [JsonProperty("available_cards")] 
+        public List<Card> availableCards;
     }
 
-    public class EquipPhaseInit
+    public class EquipPhaseBetSuccess
     {
         [JsonProperty("bet_success")]
         public Dictionary<string, int> betSuccess;
@@ -36,8 +39,14 @@ namespace Client.Models
         public string heroId;
     }
     
-    public class EquipPlayer
+    public class EquipPhasePlayer
     {
+        [JsonProperty("hero_id")] 
+        public string heroId;
+        
+        [JsonProperty("card_type")] 
+        public string cardType;
+        
         [JsonProperty("card_id")] 
         public string cardId;
     }
@@ -51,8 +60,11 @@ namespace Client.Models
         public List<Position> availablePositions;
     }
     
-    public class PrepPhaseAsk
+    public class PrepPhasePosition
     {
+        [JsonProperty("hero_id")]
+        public string heroId;
+        
         [JsonProperty("selected_position")]
         public Position selectedPosition;
     }

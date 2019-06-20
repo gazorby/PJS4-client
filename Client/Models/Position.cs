@@ -8,7 +8,12 @@ namespace Client.Models
         [JsonProperty("x")]
         public int x;
         
-        [JsonProperty("x")]
+        [JsonProperty("y")]
         public int y;
+
+        public override string ToString()
+        {
+            return $"({x}, {y})";
+        }
     }
 }

@@ -20,6 +20,9 @@ namespace Client.Models
     }
     public class Card
     {
+        [JsonProperty("id")]
+        public string id;
+        
         [JsonProperty("name")]
         public string name;
         
@@ -34,5 +37,13 @@ namespace Client.Models
         
         [JsonProperty("actions")]
         public List<ActionDescription> actions;
+
+        public override string ToString()
+        {
+            var ret = $"{name} - {description} | ";
+            foreach (var r in requirements)
+                ret += r.Key + " x " + r.Value + " | ";
+            return ret;
+        }
     }
 }

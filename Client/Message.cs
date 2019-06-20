@@ -11,13 +11,13 @@ namespace Client
     public class Message
     {
         [JsonProperty("phase")]
-        private String phase;
+        public String Phase { get; set; }
         
         [JsonProperty("type")]
-        private String type;
+        public String Type { get; set; }
         
         [JsonProperty("content")]
-        private Dictionary<String, String> content;
+        public string Content { get; set; }
         
         
         public Message()
@@ -26,53 +26,10 @@ namespace Client
 
         public void setHeader(String phase, String type)
         {
-            this.phase = phase;
-            this.type = type;
+            Phase = phase;
+            Type = type;
         }
 
-        private Object format(Dictionary<String, String> content, String type, String phase=null)
-        {
-            String local = null;
-            
-            if (this.phase != null)
-            {
-                if (phase == null)
-                {
-                    local = this.phase;
-                }
-                else
-                {
-                    new Exception();
-                }
-            }
-            else
-            {
-                local = phase;
-            }
-
-            return JsonConvert.SerializeObject(new
-                {
-                    header = JsonConvert.SerializeObject(new
-                    {
-                        phase = local,
-                        type = type
-                    }),
-                    content = JsonConvert.SerializeObject(content)
-                }
-            );
-        }
-
-        public Object sendBet(String value)
-        {
-            Dictionary<String, String> dictionary = new Dictionary<string, String>();
-            dictionary.Add("value", value);
-            return format(dictionary, "bet");
-        }
-
-        public String getType()
-        {
-            return type;
-        }
     }
     
 }

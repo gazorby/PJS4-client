@@ -5,6 +5,10 @@ namespace Client.Models
 {
     public class Hero
     {
+
+        [JsonProperty("id")]
+        public string id;
+        
         [JsonProperty("name")]
         public string name;
         
@@ -27,12 +31,17 @@ namespace Client.Models
         public Position position;
         
         [JsonProperty("cards")]
-        public List<Card> cards;
+        public Dictionary<string, Card> cards;
         
         [JsonProperty("generics")]
-        public List<Card> generics;
+        public Dictionary<string, Card> generics;
         
         [JsonProperty("dice")]
         public Dictionary<string, int> dice;
+
+        public override string ToString()
+        {
+            return $"{name} - ({life_points} pv ; {fatigue_points} fp ; {armor_points} : ap)\nPosition : {position}";
+        }
     }
 }
