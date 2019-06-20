@@ -1,0 +1,11 @@
+T:\Programmation\CSharp\workspace\client\PJS4-client\Client\bin\Debug\netcoreapp2.2\Client.deps.json
+T:\Programmation\CSharp\workspace\client\PJS4-client\Client\bin\Debug\netcoreapp2.2\Client.runtimeconfig.json
+T:\Programmation\CSharp\workspace\client\PJS4-client\Client\bin\Debug\netcoreapp2.2\Client.runtimeconfig.dev.json
+T:\Programmation\CSharp\workspace\client\PJS4-client\Client\bin\Debug\netcoreapp2.2\Client.dll
+T:\Programmation\CSharp\workspace\client\PJS4-client\Client\bin\Debug\netcoreapp2.2\Client.pdb
+T:\Programmation\CSharp\workspace\client\PJS4-client\Client\obj\Debug\netcoreapp2.2\Client.csprojAssemblyReference.cache
+T:\Programmation\CSharp\workspace\client\PJS4-client\Client\obj\Debug\netcoreapp2.2\Client.csproj.CoreCompileInputs.cache
+T:\Programmation\CSharp\workspace\client\PJS4-client\Client\obj\Debug\netcoreapp2.2\Client.AssemblyInfoInputs.cache
+T:\Programmation\CSharp\workspace\client\PJS4-client\Client\obj\Debug\netcoreapp2.2\Client.AssemblyInfo.cs
+T:\Programmation\CSharp\workspace\client\PJS4-client\Client\obj\Debug\netcoreapp2.2\Client.dll
+T:\Programmation\CSharp\workspace\client\PJS4-client\Client\obj\Debug\netcoreapp2.2\Client.pdb
