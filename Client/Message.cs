@@ -10,17 +10,18 @@ namespace Client
 {
     public class Message
     {
+        [JsonProperty("phase")]
         private String phase;
+        
+        [JsonProperty("type")]
         private String type;
+        
+        [JsonProperty("content")]
         private Dictionary<String, String> content;
         
         
-        public Message(String message)
+        public Message()
         {
-            Message m = JsonConvert.DeserializeObject<Message>(@"{'phase': 'bonjour', 'type': 'type', 'content': {'a' : 'a' } }");
-            phase = m.phase;
-            type = m.type;
-            content = m.content;
         }
 
         public void setHeader(String phase, String type)

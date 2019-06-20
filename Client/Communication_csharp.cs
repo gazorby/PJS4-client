@@ -3,6 +3,7 @@ using System.Net.Sockets;
 using System.Net;
 using System.Text;
 using Client;
+using Newtonsoft.Json;
 
 public interface ICommunication
     {
@@ -68,7 +69,7 @@ public class programme
         //{
             //String message = c.receive();
 //            String message = Console.ReadLine();
-            Message m = new Message(/*message*/"");
+            Message m = JsonConvert.DeserializeObject<Message>(@"{'phase': 'bonjour', 'type': 'type', 'content' : { 'a': 'a' } }");
             Console.WriteLine(m.getType());
             //c.send(/*message*/"");
         //}
