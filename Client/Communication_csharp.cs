@@ -48,8 +48,7 @@ public class Communication : ICommunication
         IPAddress ipAddr = ipHost.AddressList[1];
         IPEndPoint ipEndPoint = new IPEndPoint(ipAddr, port);
 
-        sender = new Socket(AddressFamily.InterNetwork,
-                                   SocketType.Stream, ProtocolType.Tcp);
+        sender = new Socket(ipAddr.AddressFamily, SocketType.Stream, ProtocolType.Tcp);
 
         sender.Connect(ipEndPoint);
 
@@ -81,7 +80,40 @@ public class programme
             foreach (var message in messages.Where(m => m != ""))
             {
                 var m = JsonConvert.DeserializeObject<Message>(message);
-                if (m.Phase == "ERROR")
+
+                if (m.Phase == "LOBBY")
+                {
+                    switch (m.Type)
+                    {
+                        case "LOBBY_PHASE":
+                            //var lobby = JsonConvert.DeserializeObject<LobbyPhase>(m.Content);
+                            Console.WriteLine("Lobby ! ");
+                            Console.WriteLine("Que faire ? CREATE <nb_player>, JOIN <id>");
+                            var tokens = Console.ReadLine().Split(' ');
+                            switch (tokens[0])
+                            {
+                                case "CREATE":
+                                    int nbPlayer = int.Parse(tokens[1]);
+                                    comm.send($"CREATE {nbPlayer}");
+                                    break;
+                                case "JOIN":
+                                    comm.send($"JOIN {tokens[1]}");
+                                    break;
+                            }
+                            break;
+                        case "LOBBY_CREATE":
+                            var lc = JsonConvert.DeserializeObject<LobbyCreate>(m.Content);
+                            Console.WriteLine($"Partie créée avec succès (id: {lc.id})");
+                            Console.WriteLine("En attente de joueurs...");
+                            break;
+                        case "LOBBY_JOIN":
+                            var lj = JsonConvert.DeserializeObject<LobbyCreate>(m.Content);
+                            Console.WriteLine($"Partie rejointe avec succès (id: {lj.id})");
+                            Console.WriteLine("En attente de joueurs...");
+                            break;
+                    }
+                }
+                else if (m.Phase == "ERROR")
                 {
                     var e = JsonConvert.DeserializeObject<Error>(m.Content);
                     Console.WriteLine($"ERROR ({m.Type}) : {e.message}");
@@ -91,6 +123,7 @@ public class programme
                     switch (m.Type)
                     {
                         case "NAME":
+                            Console.WriteLine("Début de la partie");
                             Console.Write("Ton nom : ");
                             comm.send(Console.ReadLine());
                             break;

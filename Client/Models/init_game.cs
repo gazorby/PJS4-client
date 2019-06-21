@@ -4,6 +4,24 @@ using Newtonsoft.Json;
 
 namespace Client.Models
 {
+    public class LobbyPhase
+    {
+        [JsonProperty("commands")]
+        public List<string> commands;
+    }
+    
+    public class LobbyCreate
+    {
+        [JsonProperty("id")]
+        public string id;
+    }
+    
+    public class LobbyJoin
+    {
+        [JsonProperty("id")]
+        public string id;
+    }
+    
     public class Error
     {
         [JsonProperty("message")]
