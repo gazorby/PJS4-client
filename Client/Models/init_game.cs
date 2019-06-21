@@ -4,6 +4,12 @@ using Newtonsoft.Json;
 
 namespace Client.Models
 {
+    public class Error
+    {
+        [JsonProperty("message")]
+        public string message;
+    }
+    
     public class GamePhaseInit
     {
         [JsonProperty("heroes")]
@@ -69,40 +75,166 @@ namespace Client.Models
         public Position selectedPosition;
     }
 
-    public class TurnActionInit
+    public class TurnPhaseInit
     {
-        [JsonProperty("hero_id")]
-        public string heroId;
-        
-        [JsonProperty("dice_result")]
-        public Dictionary<string, int> diceResult;
+        public class Actions
+        {
+            [JsonProperty("cards")]
+            public List<string> cardsType;
 
-        [JsonProperty("possible_actions")]
-        public List<string> possibleActions;
+            [JsonProperty("generics")]
+            public List<string> genericsType;
+
+            [JsonProperty("can_replay_dice")]
+            public bool canReplayDice;
+        }
         
-        [JsonProperty("can_replay_dice")]
-        public bool canReplayDice;
+        [JsonProperty("hero")]
+        public Hero hero;
+
+        [JsonProperty("actions")]
+        public Actions actions;
+    }
+    
+    public class TurnPhaseReplayUpdate
+    {
+        [JsonProperty("action")]
+        public string action;
+    }
+    
+    public class TurnPhaseEndUpdate
+    {
+        [JsonProperty("action")]
+        public string action;
     }
     
     public class TurnPhaseActionUpdate
     {
-        [JsonProperty("selected_action")]
-        public string selectedAction;
+        [JsonProperty("action")]
+        public string action;
+
+        [JsonProperty("card")]
+        public string card;
+        
+        [JsonProperty("type")]
+        public string type;
     }
     
-    public class TurnPhasePendingActionAsk
+    public class TurnPhasePendingHero
     {
-        [JsonProperty("positions")]
-        public List<Position> positions;
+        [JsonProperty("hero_id")]
+        public string heroId;
+
+        [JsonProperty("card_id")] 
+        public string cardId;
         
         [JsonProperty("heroes")]
-        public List<Hero> heroes;
+        public List<string> heroesId;
+        
+        [JsonProperty("nb_to_choose")]
+        public int nbToChoose;
     }
     
-    public class TurnPhasePendingActionUpdate
+    public class TurnPhasePendingPositions
+    {
+        [JsonProperty("hero_id")]
+        public string heroId;
+
+        [JsonProperty("card_id")] 
+        public string cardId;
+        
+        [JsonProperty("positions")]
+        public List<Position> positions;
+    }
+    
+    public class TurnPhasePendingHeroUpdate
+    {
+        [JsonProperty("hero_id")]
+        public string heroId;
+
+        [JsonProperty("card_id")] 
+        public string cardId;
+        
+        [JsonProperty("heroes")]
+        public List<string> heroes;
+    }
+    
+    public class TurnPhasePendingPositionUpdate
+    {
+        [JsonProperty("hero_id")]
+        public string heroId;
+
+        [JsonProperty("card_id")] 
+        public string cardId;
+        
+        [JsonProperty("position")]
+        public Position position;
+    }
+    
+    public class TurnPhasePlayer
     {
         [JsonProperty("heroes")]
         public List<Hero> heroes;
+    }
+
+    public class TurnPhaseDice
+    {
+        [JsonProperty("phase")]
+        public string phase;
+
+        [JsonProperty("type")] 
+        public string msg_type;
+        
+        [JsonProperty("content")]
+        public Dictionary<string, int> content;
+
+        public TurnPhaseDice(Dictionary<string, int> content)
+        {
+            this.phase = "TURN";
+            this.msg_type = "TURN_PHASE_DICE";
+            this.content = content;
+        }
+    }
+
+    public class TurnPhaseAction
+    {
+        [JsonProperty("phase")]
+        public string phase;
+
+        [JsonProperty("type")] 
+        public string msg_type;
+        
+        [JsonProperty("content")]
+        public Dictionary<string, string> content;
+        
+        public TurnPhaseAction(Dictionary<string, string> content)
+        {
+            this.phase = "TURN";
+            this.msg_type = "TURN_PHASE_ACTION";
+            this.content = content;
+        }
+    }
+    
+    public class EndTurn
+    {
+        [JsonProperty("phase")]
+        public string phase;
+
+        [JsonProperty("type")] 
+        public string msg_type;
+        
+        [JsonProperty("content")]
+        public Dictionary<string, string> content;
+        
+        public EndTurn()
+        {
+            this.phase = "TURN";
+            this.msg_type = "END_TURN";
+            this.content = new Dictionary<string, string>()
+            {
+                { "action", "END_TURN" }
+            };
+        }
     }
 
 }

@@ -61,9 +61,11 @@ public class Communication : ICommunication
 
 public class programme
 {
+    private static Hero heroTurn = null;
     private static Hero thisHero = null;
     private static List<Hero> heroes = new List<Hero>();
     private static Dictionary<string, List<Card>> cards = new Dictionary<string, List<Card>>();
+    private static List<Card> generics = new List<Card>();
     private static List<string> board = new List<string>();
     private static string cardType = "";
     
@@ -79,7 +81,12 @@ public class programme
             foreach (var message in messages.Where(m => m != ""))
             {
                 var m = JsonConvert.DeserializeObject<Message>(message);
-                if (m.Phase == "INIT")
+                if (m.Phase == "ERROR")
+                {
+                    var e = JsonConvert.DeserializeObject<Error>(m.Content);
+                    Console.WriteLine($"ERROR ({m.Type}) : {e.message}");
+                }
+                else if (m.Phase == "INIT")
                 {
                     switch (m.Type)
                     {
@@ -91,6 +98,7 @@ public class programme
                             var gpi = JsonConvert.DeserializeObject<GamePhaseInit>(m.Content);
                             heroes.AddRange(gpi.heroes);
                             board.AddRange(gpi.board);
+                            generics = heroes[0].generics.Select(g => g.Value).ToList();
                             thisHero = heroes.First(h => h.id == gpi.id);
                             for (var i = 0; i < heroes.Count; i++)
                                 Console.WriteLine($"{i}. {heroes[i]}");
@@ -176,6 +184,152 @@ public class programme
                             heroPos.position = ppp.selectedPosition;
                             
                             Console.WriteLine($"{heroPos.name} se place en position {ppp.selectedPosition}");
+                            break;
+                    }
+                }
+                else if (m.Phase == "TURN")
+                {
+                    switch (m.Type)
+                    {
+                        case "TURN_PHASE_INIT":
+                            var tpi = JsonConvert.DeserializeObject<TurnPhaseInit>(m.Content);
+                            heroTurn = tpi.hero;
+                            Console.WriteLine(string.Join("\n", heroes));
+                            Console.WriteLine(string.Join("\n", board));
+                            if (tpi.hero.id != thisHero.id)
+                            {
+                                Console.WriteLine($"{heroTurn.name} réfléchit à ce qu'il doit faire...");
+                                Console.WriteLine(
+                                    $"Ses dés : {string.Join(" - ", heroTurn.dice.Select(d => $"{d.Key} x {d.Value}"))}");
+                            }
+                            else
+                            {
+                                Console.WriteLine("A vous de jouer !");
+                                Console.WriteLine($"Vos dés : {string.Join(" - ", heroTurn.dice.Select(d => $"{d.Key} x {d.Value}"))}");
+                                Console.WriteLine("Cartes utilisables : ");
+                                Console.WriteLine(string.Join("\n", tpi.actions.cardsType));
+                                Console.WriteLine("Actions normales possibles : ");
+                                Console.WriteLine(string.Join("\n", tpi.actions.genericsType));
+                                if (tpi.actions.canReplayDice)
+                                    Console.WriteLine("Vous avez la possibilité de relancer vos dés");
+                                Console.WriteLine(
+                                    "Que faire ?  ACTION (CARD|GENERIC) <TYPE>, REPLAY_DICE [<TYPE>:int, ...], END_TURN)");
+                                var tokens = Console.ReadLine().Split(" ");
+                                switch (tokens[0])
+                                {
+                                    case "REPLAY_DICE":
+                                        int weapon = 0;
+                                        int armor = 0;
+                                        int mount = 0;
+                                        int spell = 0;
+
+                                        for (int i = 1; i < tokens.Length; i++)
+                                        {
+                                            var typeAndNumber = tokens[i].Split(":");
+                                            switch (typeAndNumber[0])
+                                            {
+                                                case "Die.WEAPON":
+                                                    weapon = int.Parse(typeAndNumber[1]);
+                                                    break;
+                                                case "Die.ARMOR":
+                                                    armor = int.Parse(typeAndNumber[1]);
+                                                    break;
+                                                case "Die.MOUNT":
+                                                    mount = int.Parse(typeAndNumber[1]);
+                                                    break;
+                                                case "Die.SPELL":
+                                                    spell = int.Parse(typeAndNumber[1]);
+                                                    break;
+                                            }
+                                        }
+
+                                        comm.send(JsonConvert.SerializeObject(
+                                            new TurnPhaseDice(
+                                                new Dictionary<string, int>
+                                                {
+                                                    {"Die.WEAPON", weapon},
+                                                    {"Die.ARMOR", armor},
+                                                    {"Die.MOUNT", mount},
+                                                    {"Die.SPELL", spell},
+                                                }
+                                            )
+                                        ));
+                                        break;
+                                    case "ACTION":
+                                        comm.send(JsonConvert.SerializeObject(new TurnPhaseAction(
+                                            new Dictionary<string, string>()
+                                            {
+                                                {"card", tokens[1]},
+                                                {"type", tokens[2]}
+                                            })
+                                        ));
+                                        break;
+                                    case "END_TURN":
+                                        comm.send(JsonConvert.SerializeObject(new EndTurn()));
+                                        break;
+                                    default:
+                                        Console.WriteLine("Pas compris");
+                                        break;
+                                }
+                            }
+
+                            break;
+                        case "TURN_PHASE_REPLAY_UPDATE":
+                            //var tpru = JsonConvert.DeserializeObject<TurnPhaseReplayUpdate>(m.Content);
+                            Console.WriteLine($"{heroTurn.name} a effectué une relance !");
+                            break;
+                        case "TURN_PHASE_ACTION_UPDATE":
+                            var tpau = JsonConvert.DeserializeObject<TurnPhaseActionUpdate>(m.Content);
+                            if (tpau.card == "CARD")
+                                Console.WriteLine($"{heroTurn.name} a activé {heroTurn.cards[tpau.type]}");
+                            else if (tpau.card == "GENERIC")
+                                Console.WriteLine($"{heroTurn.name} a lancé une attaque de type {tpau.type}");
+                            break;
+                        case "TURN_PHASE_PLAYER":
+                            var tpp = JsonConvert.DeserializeObject<TurnPhasePlayer>(m.Content);
+                            heroes = tpp.heroes;
+                            break;
+                        case "TURN_PHASE_PENDING_POSITION":
+                            var tppp = JsonConvert.DeserializeObject<TurnPhasePendingPositions>(m.Content);
+                            var heroChoosingPos = heroes.First(h => h.id == tppp.heroId);
+                            if (heroChoosingPos.id != thisHero.id)
+                                Console.WriteLine($"{heroChoosingPos.name} choisit une position...");
+                            else
+                            {
+                                Console.WriteLine("Choisis une position :");
+                                for (var i = 0; i < tppp.positions.Count; i++)
+                                    Console.WriteLine($"{i}. {tppp.positions[i]}");
+                                comm.send(Console.ReadLine());
+                            }
+                            break;
+                        case "TURN_PHASE_PENDING_POSITION_UPDATE":
+                            var tpppu = JsonConvert.DeserializeObject<TurnPhasePendingPositionUpdate>(m.Content);
+                            var heroUpdate = heroes.First(h => h.id == tpppu.heroId);
+                            Console.WriteLine($"{heroUpdate} se déplace de {heroUpdate.position} en {tpppu.position}");
+                            heroUpdate.position = tpppu.position;
+                            break;
+                        case "TURN_PHASE_PENDING_HERO":
+                            var tpph = JsonConvert.DeserializeObject<TurnPhasePendingHero>(m.Content);
+                            var heroChoosing = heroes.First(h => h.id == tpph.heroId);
+                            if (heroChoosing != thisHero)
+                                Console.WriteLine($"{heroChoosing.name} choisit une position...");
+                            else
+                            {
+                                for (var j = 0; j < tpph.nbToChoose; j++) {
+                                    Console.WriteLine("Choisis un héros :");
+                                    for (var i = 0; i < tpph.heroesId.Count; i++)
+                                        Console.WriteLine($"{i}. {heroes.First(h => h.id == tpph.heroesId[i]).name}");
+                                    var indSelected = int.Parse(Console.ReadLine());
+                                    comm.send(tpph.heroesId[indSelected]);
+                                    tpph.heroesId.Remove(tpph.heroesId[indSelected]);
+                                }
+                            }
+                            break;
+                        case "TURN_PHASE_PENDING_HERO_UPDATE":
+                            var tpphu = JsonConvert.DeserializeObject<TurnPhasePendingHeroUpdate>(m.Content);
+                            var heroCaster = heroes.First(h => h.id == tpphu.heroId);
+                            var heroesTarget = tpphu.heroes.Select(h => heroes.First(hs => hs.id == h));
+                            Console.WriteLine($"{heroCaster} cible {string.Join(", ", heroesTarget.Select(ht => ht.name))}");
                             break;
                     }
                 }
