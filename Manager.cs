@@ -14,8 +14,10 @@ using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.UI;
 
+// ATTENTION /!\ s'aventurer plus loin dans ce code source avant de m'avoir embauché est passible de prison
 public class Manager : MonoBehaviour
 {
+    //Link all the GameObjects that are updated during the game to the script
     public readonly static ConcurrentQueue<Action> RunOnMainThread = new ConcurrentQueue<Action>();
     public InputField numPort;
     public Communication comm;
@@ -119,9 +121,10 @@ public class Manager : MonoBehaviour
     public GameObject sp_perso4;
     public GameObject[] sp_perso;
     public Hero thisHero = null;
-    // Initialisation du jeu
+    // First function called when game start
     void Start()
     {
+        //Initialize components visibility
         equip_phase.SetActive(false);
         panel_carte.SetActive(false);
         panel_cartes_ennemi.SetActive(false);
@@ -136,7 +139,7 @@ public class Manager : MonoBehaviour
         comm = new Communication();
         try
         {
-
+            //Connect to the server
             comm.start("91.121.86.62", 11122);
             comm.receive().Split('\n');
             ExThread obj = new ExThread(this);
@@ -156,7 +159,7 @@ public class Manager : MonoBehaviour
 
     }
 
-    //renvoie la position de la cellule cliquée
+    ///If a clickable cell is clicked and the server is waiting for it, send the position
     System.Object Getclic()
     {
         if (Input.GetMouseButtonDown(0))
@@ -195,10 +198,10 @@ public class Manager : MonoBehaviour
                 }
             }
         }
-        return null;
+        return null; // I had few time ok
     }
 
-    //Execution des commandes serveur
+    //Execute what the other Thread ask for
     void Update_server()
     {
         if (!RunOnMainThread.IsEmpty)
@@ -210,9 +213,10 @@ public class Manager : MonoBehaviour
         }
     }
 
-    // appellé à chaque frame
+    //Called each frame
     void Update()
     {
+        //send message to chat
         if (Input.GetKeyDown(KeyCode.Return))
         {
             if (chatBox.text != "")
@@ -229,7 +233,7 @@ public class Manager : MonoBehaviour
             chatBox.Select();
             chatBox.ActivateInputField();
         }
-
+        //if there are lots of messages, scroll to the last one when one is received
         if (updateScroll)
         {
             chatscroll.verticalNormalizedPosition = 0;
@@ -244,10 +248,10 @@ public class Manager : MonoBehaviour
         SendMessageToChat(text, Color.white);
     }
 
-    //gestion de la fenêtre de chat
+    //add messages to the chat
     public void SendMessageToChat(string text, Color color)
     {
-        if (messageList.Count >= maxMessage) //suppression des anciens messages
+        if (messageList.Count >= maxMessage) //oldest messages are erased
         {
             Destroy(messageList[0].textObject.gameObject);
             messageList.Remove(messageList[0]);
@@ -323,7 +327,7 @@ public class Communication : ICommunication
 
 }
 
-//récéption des message du serveur
+//Handle the server request
 public class ExThread
 {
     Manager man;
@@ -331,8 +335,6 @@ public class ExThread
 
     private static List<Hero> heroes = new List<Hero>();
     private static Dictionary<string, List<Card>> cards = new Dictionary<string, List<Card>>();
-    //private static List<Card>
-
     public Hero heroTurn = null;
     private static List<Card> generics = new List<Card>();
     private static List<string> board = new List<string>();
@@ -342,7 +344,7 @@ public class ExThread
     bool mise = true;
     List<GameObject> board_unity;
     int ordreJeu = 0;
-    //connexion avec la classe principale pour gérer les requêtes
+    //Initialize events and get the main Thread to communicate with it
     public ExThread(Manager man)
     {
         this.man = man;
@@ -357,7 +359,6 @@ public class ExThread
         man.powBtn.onClick.AddListener(btnPowHandler);
         man.armBtn.onClick.AddListener(btnArmHandler);
         man.fermeture_panel_ennemi_btn.onClick.AddListener(fermeturePanelEnnemi);
-
         board_unity = new List<GameObject>();
     }
 
@@ -365,6 +366,7 @@ public class ExThread
     {
         man.panel_cartes_ennemi.SetActive(false);
     }
+    //activate generic actions on click
     private void btnMovHandler()
     {
         man.comm.send(JsonConvert.SerializeObject(new TurnPhaseAction(new Dictionary<string, string>()
@@ -401,6 +403,8 @@ public class ExThread
     {
         man.comm.send(JsonConvert.SerializeObject(new EndTurn()));
     }
+    // For some reason, the server allows to replay only the dice you want
+    // the front dev was not happy with this bad idea.
     private void relancer()
     {
         man.relanceBtn.interactable = false;
@@ -414,6 +418,7 @@ public class ExThread
                                             )));
     }
 
+    //send the best during the equipement phase and update interface
     private void envoi_mise()
     {
         if (mise)
@@ -431,6 +436,7 @@ public class ExThread
         }
     }
 
+    //display the sprite related to the card requirement
     Sprite getSprite(string txt)
     {
         if (txt == "Die.WEAPON")
@@ -443,6 +449,8 @@ public class ExThread
             return man.pow_sprite;
         return null;
     }
+    
+    //this was written earlier in the night than the previous function.
     private void affichage_carte_select(int arg0)
     {
         man.nom_carte.text = cards[epi.cardType][man.choix_carte.value].name;
@@ -468,6 +476,7 @@ public class ExThread
             man.couts_cartes[nb_couts].sprite = null;
     }
 
+    //This thread isn't allowed to update the interface
     void chat(string message)
     {
         Manager.RunOnMainThread.Enqueue(() =>
@@ -483,6 +492,8 @@ public class ExThread
             man.SendMessageToChat(message, c);
         });
     }
+    
+    //when user decide to join a game
     void join()
     {
         flash_colors();
@@ -507,6 +518,7 @@ public class ExThread
         }
     }
 
+    //if there are some error (empty player name..) that needs to be reset
     void flash_colors()
     {
         cb = man.lien_invit.colors;
@@ -517,11 +529,7 @@ public class ExThread
         man.pseudo.colors = cb;
     }
 
-    void lancement_serveur()
-    {
-
-    }
-
+    //when user join a game
     void creation()
     {
         flash_colors();
@@ -535,6 +543,7 @@ public class ExThread
         }
     }
 
+    //update the components of the board (foutains might change into mines)
     void maj_board()
     {
         board_unity.Clear();
@@ -569,6 +578,8 @@ public class ExThread
             }
         }
     }
+    
+    //set the cell position of the cell in order to send it to the server on click
     GameObject maj_cell(GameObject o, int x, int y, bool cliquable = true)
     {
         GameObject res = UnityEngine.Object.Instantiate(o, position_unity[y][x], Quaternion.identity);
@@ -579,6 +590,8 @@ public class ExThread
         }
         return res;
     }
+    
+    //erased useless information from the board string
     private string[] transformation(List<String> tableau)
     {
         string[] res = new string[tableau.Count];
@@ -596,6 +609,8 @@ public class ExThread
         }
         return res;
     }
+    
+    //might be the only pretty function of the code, enjoy it
     void charge_sprite(Dictionary<string, int> carte, Image[] img)
     {
         int carteok = 0;
@@ -609,11 +624,14 @@ public class ExThread
         if (carteok == 1)
             img[carteok].sprite = null;
     }
+    
+    //I wonder if I used it somewhere...
     int convertX(int x)
     {
         return x / 2;
     }
 
+    //update players remaning life point on the interface
     void maj_pv()
     {
         for (int i = 0; i < heroes.Count; ++i)
@@ -635,6 +653,7 @@ public class ExThread
         }
     }
 
+    //update remaning dice, special armor and tiring points of each player 
     public void maj_des()
     {
         foreach (Hero hd in heroes)
@@ -684,6 +703,7 @@ public class ExThread
         }
     }
 
+    //Thread's first function called
     public void srv_in()
     {
         while (true)
@@ -705,7 +725,7 @@ public class ExThread
                             chat($"Partie créée avec succès (id: {lc.id})");
                             chat("En attente de joueurs...");
                             break;
-                        case "LOBBY_JOIN":
+                        case "LOBBY_JOIN"://nothing interesting so far, just update visibility of things
                             Manager.RunOnMainThread.Enqueue(() =>
                             {
                                 man.niougame.SetActive(false);
@@ -719,7 +739,7 @@ public class ExThread
                 else if (m.Phase == "ERROR")
                 {
                     var e = JsonConvert.DeserializeObject<Error>(m.Content);
-                    chat(e.message, Color.red);
+                    chat(e.message, Color.red);//error logs are red 
                 }
                 else if (m.Phase == "INIT")
                 {
@@ -737,7 +757,7 @@ public class ExThread
 
                             Manager.RunOnMainThread.Enqueue(() =>
                             {
-                                man.chatBox.interactable = true;
+                                man.chatBox.interactable = true;//now there are some people to talk to
                                 maj_board();
                             });
                             chat("début de partie");
@@ -750,7 +770,7 @@ public class ExThread
                     {
                         case "CHAT_MESSAGE":
                             var msg = JsonConvert.DeserializeObject<ChatMessage>(m.Content);
-                            chat(msg.author + " : " + msg.content, Color.blue);
+                            chat(msg.author + " : " + msg.content, Color.blue);//message are blue
                             break;
                     }
                 }
@@ -761,7 +781,7 @@ public class ExThread
                     {
                         case "EQUIP_PHASE_INIT":
                             Manager.RunOnMainThread.Enqueue(() =>
-                            {
+                            {//show equipement panel
                                 man.equip_phase.SetActive(true);
                                 man.panel_carte.SetActive(true);
                                 man.valider_mise.enabled = true;
@@ -782,7 +802,7 @@ public class ExThread
                                 {
                                     cartes_restantes.Add("Carte " + (i + 1));
                                 }
-                                man.choix_carte.ClearOptions();
+                                man.choix_carte.ClearOptions();//update components every time
                                 man.choix_carte.AddOptions(cartes_restantes);
                                 affichage_carte_select(0);
                                 man.choix_mise.ClearOptions();
@@ -823,7 +843,7 @@ public class ExThread
                                 Manager.RunOnMainThread.Enqueue(() =>
                                 {
                                     heroEquip.timeline = ordreJeu++;
-                                    if (ordreJeu == 1)
+                                    if (ordreJeu == 1)//so we want the top left panel to show ennemies from first to last to play
                                     {
                                         man.panel_ennemi_1.GetComponent<clikenmi>().man = man;
                                         man.panel_ennemi_1.GetComponent<clikenmi>().h = heroEquip;
@@ -851,7 +871,7 @@ public class ExThread
                 else if (m.Phase == "PREP")
                 {
                     Manager.RunOnMainThread.Enqueue(() =>
-                    {
+                    {//show every panel and hide equipement panel update things, and so on
                         man.equip_phase.SetActive(false);
                         man.panel_carte.SetActive(false);
                         man.panelCbt.SetActive(true);
@@ -896,7 +916,10 @@ public class ExThread
                                 {
                                     chat("Choisissez votre position :");
                                     man.availablePositions = ppi.availablePositions;
-                                    man.clicTrigger = true;
+                                    man.clicTrigger = true;//so the next clicked cell will be sent to the server.
+                                    //Actually I just noticed that it probably means that if user click a clickable cell
+                                    //but the cell isn't targetable at the moment, then the user can't click anymore cell.
+                                    //too bad for him I guess.
                                 }
                                 break;
                             case "PREP_PHASE_POSITION":
@@ -904,7 +927,7 @@ public class ExThread
                                 var heroPos = heroes.First(h => h.id == ppp.heroId);
                                 heroPos.position = ppp.selectedPosition;
                                 if (man.thisHero.id != heroPos.id)
-                                {
+                                {//something finally appear on the board
                                     heroPos.realplayer = UnityEngine.Object.Instantiate(man.sp_perso[heroPos.timeline], new Vector3(position_unity[heroPos.position.y][heroPos.position.x / 2].x, position_unity[heroPos.position.y][heroPos.position.x / 2].y, -1), Quaternion.identity);
                                 }
                                 else
@@ -921,7 +944,7 @@ public class ExThread
                     {
                         switch (m.Type)
                         {
-                            case "TURN_PHASE_INIT"://maj fatigue / armure
+                            case "TURN_PHASE_INIT"://update availible dice
                                 var tpi = JsonConvert.DeserializeObject<TurnPhaseInit>(m.Content);
                                 heroTurn = tpi.hero;
                                 maj_des();
@@ -933,8 +956,6 @@ public class ExThread
                                     chat("A vous de jouer !");
                                     if (tpi.actions.canReplayDice)
                                         man.relanceBtn.interactable = true;
-                                    //Console.WriteLine("Que faire ?  ACTION (CARD|GENERIC) <TYPE>, REPLAY_DICE [<TYPE>:int, ...], END_TURN)");
-                                    //gerer les cartes
                                 }
                                 break;
                             case "TURN_PHASE_REPLAY_UPDATE":
@@ -947,13 +968,13 @@ public class ExThread
                                 else if (tpau.card == "GENERIC")
                                     chat($"{heroTurn.name} a lancé une attaque de type {tpau.type}");
                                 break;
-                            case "TURN_PHASE_PLAYER"://maj fatigue & armure
+                            case "TURN_PHASE_PLAYER"://update everything
                                 var tpp = JsonConvert.DeserializeObject<TurnPhasePlayer>(m.Content);
                                 heroes = tpp.heroes;
                                 maj_pv();
                                 maj_des();
                                 break;
-                            case "TURN_PHASE_PENDING_POSITION":
+                            case "TURN_PHASE_PENDING_POSITION"://when some hero must move
                                 var tppp = JsonConvert.DeserializeObject<TurnPhasePendingPositions>(m.Content);
                                 var heroChoosingPos = heroes.First(h => h.id == tppp.heroId);
                                 if (heroChoosingPos.id != man.thisHero.id)
@@ -965,7 +986,7 @@ public class ExThread
                                     man.clicTrigger = true;
                                 }
                                 break;
-                            case "TURN_PHASE_PENDING_POSITION_UPDATE":
+                            case "TURN_PHASE_PENDING_POSITION_UPDATE"://move hero
                                 var tpppu = JsonConvert.DeserializeObject<TurnPhasePendingPositionUpdate>(m.Content);
                                 var heroUpdate = heroes.First(h => h.id == tpppu.heroId);
                                 heroUpdate.position = tpppu.position; // maj pos
@@ -976,7 +997,7 @@ public class ExThread
                                                       -1
                                                       );
                                 break;
-                            case "TURN_PHASE_PENDING_HERO": //choix cible
+                            case "TURN_PHASE_PENDING_HERO": //target a hero
                                 var tpph = JsonConvert.DeserializeObject<TurnPhasePendingHero>(m.Content);
                                 var heroChoosing = heroes.First(h => h.id == tpph.heroId);
                                 if (heroChoosing != man.thisHero)
@@ -988,11 +1009,10 @@ public class ExThread
                                         chat("Choisis un héros :");
                                         man.clicTriggerFdp = true;
                                         man.availablePositions = heroes.Select(h => h.position).ToList();
-                                        //tpph.heroesId.Remove(tpph.heroesId[indSelected]);
                                     }
                                 }
                                 break;
-                            case "TURN_PHASE_PENDING_HERO_UPDATE":
+                            case "TURN_PHASE_PENDING_HERO_UPDATE"://do nothing that interesting.
                                 var tpphu = JsonConvert.DeserializeObject<TurnPhasePendingHeroUpdate>(m.Content);
                                 var heroCaster = heroes.First(h => h.id == tpphu.heroId);
                                 var heroesTarget = tpphu.heroes.Select(h => heroes.First(hs => hs.id == h));
