@@ -7,10 +7,13 @@ using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.UI;
 
+//Added to the player's card interface (on the top right corner of the screen,
+//detects the over and the click on thoses cards.
 public class over : MonoBehaviour, IPointerEnterHandler, IPointerClickHandler, IPointerExitHandler
 {
     public Manager man;
     public string type;
+    //cast the spell related to the card on click
     public void OnPointerClick(PointerEventData eventData)
     {
         man.comm.send(JsonConvert.SerializeObject(new TurnPhaseAction(new Dictionary<string, string>()
@@ -47,6 +50,7 @@ public class over : MonoBehaviour, IPointerEnterHandler, IPointerClickHandler, I
             img[carteok].sprite = null;
     }
 
+    //on over, display the card
     public void OnPointerEnter(PointerEventData eventData)
     {
         try
@@ -58,7 +62,8 @@ public class over : MonoBehaviour, IPointerEnterHandler, IPointerClickHandler, I
         } catch (Exception) { }
         
     }
-
+    
+    //hide the card
     public void OnPointerExit(PointerEventData eventData)
     {
         try
