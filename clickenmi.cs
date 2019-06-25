@@ -5,6 +5,7 @@ using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.UI;
 
+//display the cards of an ennemi when his panel (on the top left corner) is clicked.
 public class clikenmi : MonoBehaviour, IPointerClickHandler
 {
     public Manager man;
